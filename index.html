@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101011">
+  <title>Minha Série — sua biblioteca</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #101011;
+      color: #f7f5f2;
+      font-synthesis: none;
+      text-rendering: optimizeLegibility;
+      --muted: #aaa6a3;
+      --accent: #e85d45;
+      --panel: #1b1a1b;
+    }
+
+    [hidden] { display: none !important; }
+    button:disabled { opacity: .5; cursor: default; }
+    .actions { flex-wrap: wrap; }
+    a.button { text-decoration: none; color: inherit; }
+    * { box-sizing: border-box; }
+
+    body { margin: 0; min-width: 320px; background: #101011; }
+    button, select { font: inherit; }
+    button { color: inherit; }
+
+    .topbar {
+      height: 72px;
+      padding: 0 clamp(20px, 5vw, 72px);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid #ffffff12;
+    }
+
+    .brand { display: flex; align-items: center; gap: 11px; font-weight: 750; letter-spacing: .02em; }
+    .brand-mark {
+      width: 30px;
+      height: 30px;
+      display: grid;
+      place-items: center;
+      border-radius: 9px;
+      background: var(--accent);
+      color: #171111;
+      font-size: 15px;
+    }
+    .top-note { color: var(--muted); font-size: 13px; }
+
+    main { width: min(1200px, calc(100% - 40px)); margin: 0 auto; padding: 42px 0 64px; }
+    .intro { margin-bottom: 26px; }
+    .eyebrow { color: var(--accent); text-transform: uppercase; letter-spacing: .16em; font-size: 11px; font-weight: 750; }
+    h1 { margin: 8px 0 6px; font-size: clamp(28px, 4vw, 42px); letter-spacing: -.04em; }
+    .intro p { color: var(--muted); margin: 0; font-size: 14px; }
+
+    .player {
+      position: relative;
+      overflow: hidden;
+      aspect-ratio: 16 / 8.2;
+      min-height: 240px;
+      border: 1px solid #ffffff12;
+      border-radius: 16px;
+      background:
+        radial-gradient(ellipse at 70% 20%, #713a3138, transparent 38%),
+        linear-gradient(140deg, #242122, #111112 70%);
+    }
+    .player video { width: 100%; height: 100%; display: block; object-fit: contain; background: #080808; }
+    .empty-state {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-content: center;
+      justify-items: center;
+      padding: 24px;
+      text-align: center;
+    }
+    .play-icon {
+      width: 58px;
+      height: 58px;
+      display: grid;
+      place-items: center;
+      margin-bottom: 18px;
+      border: 1px solid #ffffff26;
+      border-radius: 50%;
+      background: #ffffff0c;
+      color: var(--accent);
+      font-size: 22px;
+    }
+    .empty-state strong { font-size: 17px; }
+    .empty-state p { max-width: 420px; margin: 8px 0 0; color: var(--muted); font-size: 13px; line-height: 1.6; }
+
+    .now-playing {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 16px 2px 26px;
+    }
+    .now-playing h2 { margin: 0 0 5px; font-size: 17px; }
+    .now-playing p { margin: 0; color: var(--muted); font-size: 13px; }
+    .actions { display: flex; gap: 9px; }
+    .button {
+      min-height: 40px;
+      padding: 0 15px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      border: 1px solid #ffffff26;
+      border-radius: 8px;
+      background: #ffffff0b;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 650;
+      transition: background .15s, border-color .15s;
+    }
+    .button:hover { background: #ffffff17; border-color: #ffffff48; }
+    .button.primary { border-color: var(--accent); background: var(--accent); color: #1a1110; }
+    .button.primary:hover { background: #f3745d; }
+
+    .episodes-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 22px 0 14px;
+      border-top: 1px solid #ffffff18;
+    }
+    .episodes-header h2 { margin: 0; font-size: 19px; }
+    .season-select {
+      min-height: 40px;
+      padding: 0 36px 0 12px;
+      border: 1px solid #ffffff26;
+      border-radius: 8px;
+      background: var(--panel);
+      color: #f7f5f2;
+      cursor: pointer;
+    }
+    .episode-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    .episode {
+      min-width: 0;
+      display: grid;
+      grid-template-columns: 44px minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 14px;
+      padding: 14px;
+      border: 1px solid #ffffff12;
+      border-radius: 10px;
+      background: var(--panel);
+      text-align: left;
+      cursor: pointer;
+      transition: background .15s, border-color .15s;
+    }
+    .episode:hover { background: #242223; }
+    .episode.active { border-color: #e85d4580; background: #e85d4512; }
+    .episode-number {
+      width: 40px;
+      height: 40px;
+      display: grid;
+      place-items: center;
+      border-radius: 8px;
+      background: #ffffff0b;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .episode.active .episode-number { background: #e85d4520; color: var(--accent); }
+    .episode-copy { min-width: 0; }
+    .episode-copy strong { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; }
+    .episode-copy span { display: block; margin-top: 5px; color: var(--muted); font-size: 11px; }
+    .episode-status { color: var(--muted); font-size: 11px; white-space: nowrap; }
+    .episode-status.ready { color: #8ed3a0; }
+    .file-input { display: none; }
+
+    @media (max-width: 680px) {
+      .topbar { height: 62px; }
+      .top-note { display: none; }
+      main { width: min(100% - 28px, 560px); padding-top: 30px; }
+      .player { aspect-ratio: 16 / 10; min-height: 210px; }
+      .now-playing { align-items: flex-start; flex-direction: column; }
+      .actions { width: 100%; }
+      .actions .button { flex: 1; }
+      .episode-list { grid-template-columns: 1fr; }
+      .episode { grid-template-columns: 40px minmax(0, 1fr) auto; gap: 10px; padding: 12px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="brand-mark" aria-hidden="true">▶</span><span>MINHA SÉRIE</span></div>
+    <span class="top-note">Sua biblioteca pessoal</span>
+  </header>
+
+  <main>
+    <section class="intro" aria-labelledby="series-title">
+      <span class="eyebrow">Biblioteca de vídeo</span>
+      <h1 id="series-title">Desperate Housewives</h1>
+      <p>Escolha uma temporada e assista aos episódios na ordem que preferir.</p>
+    </section>
+
+    <section class="player" aria-label="Reprodutor de vídeo">
+      <video id="video" controls playsinline preload="metadata" hidden></video>
+      <div class="empty-state" id="empty-state">
+        <span class="play-icon" aria-hidden="true">▶</span>
+        <strong id="empty-title">Carregando catálogo…</strong>
+        <p id="empty-message">Consultando a pasta do MEGA.</p>
+      </div>
+    </section>
+
+    <section class="now-playing" aria-live="polite">
+      <div>
+        <h2 id="current-title">Biblioteca dublada</h2>
+        <p id="current-description">Nenhum vídeo carregado</p>
+      </div>
+      <div class="actions">
+        <button class="button" id="previous-button" type="button">← Anterior</button>
+        <button class="button" id="next-button" type="button">Próximo →</button>
+      </div>
+    </section>
+
+    <section aria-labelledby="episodes-title">
+      <div class="episodes-header">
+        <h2 id="episodes-title">Episódios</h2>
+        <label>
+          <span class="file-input">Escolha a temporada</span>
+          <select class="season-select" id="season-select" aria-label="Escolha a temporada">
+          </select>
+        </label>
+      </div>
+      <div class="episode-list" id="episode-list"></div>
+    </section>
+  </main>
+
+  <script src="vendor/megajs.js"></script>
+  <script src="vendor/videostream.js"></script>
+  <script>
+    const episodesBySeason = {};
+    const folderUrl = "https://mega.nz/folder/W8kwlIrY#MLKmUGDPvAp6IxfYmIEAjQ";
+    let video = document.querySelector("#video");
+    let closePlayer;
+    const episodeList = document.querySelector("#episode-list");
+    const seasonSelect = document.querySelector("#season-select");
+    const emptyState = document.querySelector("#empty-state");
+
+    let season = 2;
+    let episodeIndex = 0;
+
+    function renderEpisodes() {
+      const episodes = episodesBySeason[season];
+      episodeList.replaceChildren();
+
+      episodes.forEach((episode, index) => {
+
+        const item = document.createElement("button");
+        item.type = "button";
+        item.className = "episode" + (index === episodeIndex ? " active" : "");
+        item.setAttribute("aria-pressed", String(index === episodeIndex));
+
+        const number = document.createElement("span");
+        number.className = "episode-number";
+        number.textContent = String(episode.number).padStart(2, "0");
+
+        const copy = document.createElement("span");
+        copy.className = "episode-copy";
+        const title = document.createElement("strong");
+        title.textContent = episode.file.name.replace(/\.mp4$/i, "");
+        copy.append(title);
+        const status = document.createElement("span");
+        status.className = "episode-status";
+        status.textContent = "MP4";
+
+        item.append(number, copy, status);
+        item.addEventListener("click", () => {
+          episodeIndex = index;
+          updatePlayer();
+        });
+        episodeList.append(item);
+      });
+    }
+
+    function updatePlayer(autoplay = true) {
+      const episode = episodesBySeason[season][episodeIndex];
+      const hash = "#episodio=" + season + "x" + String(episode.number).padStart(2, "0");
+      if (location.hash !== hash) location.replace(hash);
+      const oldVideo = video;
+      const objectUrl = oldVideo.src;
+      if (closePlayer) closePlayer();
+      closePlayer = null;
+      oldVideo.pause();
+      video = oldVideo.cloneNode(false);
+      video.removeAttribute("src");
+      oldVideo.replaceWith(video);
+      if (objectUrl.startsWith("blob:")) URL.revokeObjectURL(objectUrl);
+      document.querySelector("#current-title").textContent =
+        "Temporada " + season + " · Episódio " + episode.number;
+      document.querySelector("#current-description").textContent = episode.file.name;
+      video.hidden = false;
+      emptyState.hidden = true;
+      const current = video;
+      function failed() {
+        if (current === video) showError("Falha na reprodução", "Confira a conexão e selecione o episódio para tentar novamente.");
+      }
+      video.addEventListener("error", failed);
+      try {
+        closePlayer = openEpisode(episode.file, video, failed);
+        if (autoplay) video.play().catch(error => {
+          if (!["NotAllowedError", "AbortError"].includes(error.name)) failed();
+        });
+      } catch { failed(); }
+      const seasons = Object.keys(episodesBySeason).map(Number);
+      document.querySelector("#previous-button").disabled = season === seasons[0] && episodeIndex === 0;
+      document.querySelector("#next-button").disabled = season === seasons.at(-1) && episodeIndex === episodesBySeason[season].length - 1;
+      renderEpisodes();
+    }
+
+    seasonSelect.addEventListener("change", () => {
+      season = Number(seasonSelect.value);
+      episodeIndex = 0;
+      updatePlayer();
+    });
+
+    document.querySelector("#previous-button").addEventListener("click", () => {
+      if (episodeIndex > 0) {
+        episodeIndex -= 1;
+        updatePlayer();
+      } else if (season > Number(Object.keys(episodesBySeason)[0])) {
+        season = Object.keys(episodesBySeason).map(Number).filter(n => n < season).at(-1);
+        seasonSelect.value = String(season);
+        episodeIndex = episodesBySeason[season].length - 1;
+        updatePlayer();
+      }
+    });
+
+    document.querySelector("#next-button").addEventListener("click", () => {
+      if (episodeIndex < episodesBySeason[season].length - 1) {
+        episodeIndex += 1;
+        updatePlayer();
+      } else if (season < Number(Object.keys(episodesBySeason).at(-1))) {
+        season = Object.keys(episodesBySeason).map(Number).find(n => n > season);
+        seasonSelect.value = String(season);
+        episodeIndex = 0;
+        updatePlayer();
+      }
+    });
+
+    function showError(title, message) {
+      document.querySelector("#empty-title").textContent = title;
+      document.querySelector("#empty-message").textContent = message;
+      video.hidden = true;
+      emptyState.hidden = false;
+    }
+
+    async function loadCatalog() {
+      const controls = document.querySelectorAll(".actions button, #season-select");
+      controls.forEach(control => control.disabled = true);
+      try {
+        const root = mega.File.fromURL(folderUrl);
+        await root.loadAttributes();
+        for (const file of root.filter(node => !node.directory, true)) {
+          const match = /(\d+)x(\d+).*\.mp4$/i.exec(file.name);
+          if (match) (episodesBySeason[Number(match[1])] ??= []).push({ file, number: Number(match[2]) });
+        }
+        for (const number of Object.keys(episodesBySeason)) {
+          episodesBySeason[number].sort((a, b) => a.number - b.number);
+          seasonSelect.add(new Option("Temporada " + number, number));
+        }
+        if (!seasonSelect.length) {
+          showError("Pasta sem episódios", "Nenhum episódio foi encontrado nesta pasta.");
+          return;
+        }
+        if (episodesBySeason[2]) seasonSelect.value = "2";
+        season = Number(seasonSelect.value);
+        selectFromLink();
+        controls.forEach(control => control.disabled = false);
+        updatePlayer(false);
+      } catch {
+        showError("Catálogo indisponível", "Confira a conexão e recarregue a página para tentar novamente.");
+      }
+    }
+    function selectFromLink() {
+      const match = /^#episodio=(\d+)x(\d+)$/.exec(location.hash);
+      if (!match) return false;
+      const targetSeason = Number(match[1]);
+      const target = episodesBySeason[targetSeason]?.findIndex(entry => entry.number === Number(match[2]));
+      if (target == null || target < 0 || (targetSeason === season && target === episodeIndex)) return false;
+      season = targetSeason;
+      seasonSelect.value = String(season);
+      episodeIndex = target;
+      return true;
+    }
+    window.addEventListener("hashchange", () => {
+      if (selectFromLink()) updatePlayer(false);
+    });
+    loadCatalog();
+  </script>
+</body>
+</html>

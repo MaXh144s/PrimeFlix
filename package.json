@@ -1,0 +1,1 @@
+{"name":"reprodutor-de-series","private":true,"scripts":{"start":"node server.js","build":"browserify episode-stream.js --standalone openEpisode -o vendor/videostream.js"},"dependencies":{"megajs":"1.3.10","readable-stream":"3.6.2","videostream":"3.2.2"},"devDependencies":{"browserify":"17.0.1"}}
